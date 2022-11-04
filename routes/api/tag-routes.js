@@ -6,7 +6,9 @@ const { Tag, Product, ProductTag } = require('../../models');
 router.get('/', async (req, res) => {
   // find all tags
   // be sure to include its associated Product data
-  const data = await ProductTag.findAll().catch((err) => {
+  const data = await Tag.findAll({
+    include: [{ model: Product }]
+  }).catch((err) => {
     res.json(err);
   });
   res.json(data);
@@ -15,32 +17,31 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   // find a single tag by its `id`
   // be sure to include its associated Product data
-  const id = req.params.id.toLowerCase();
-  const data = await ProductTag.findAll({
-    where: {
-      id: id,
-    }
-  }).catch((err) => {
-    res.json(err);
-  });
-  res.json(data);
+  try {
+    const data = await Tag.findAll({
+      where: {
+        id: req.params.id,
+      },
+      include: [{ model: Product }],
+    });
+    res.status(200).json(data);
+  } catch (err) {
+    res.status(500).json(err);
+  }
 });
 
 router.post('/', async (req, res) => {
   // create a new tag
-  const data = await ProductTag.create(req.body);
-
+  const data = await Tag.create(req.body);
   return res.json(data);
 });
 
 router.put('/:id',  async(req, res) => {
   // update a tag's name by its `id` value
-  console.log(req);
-  const data = await ProductTag.update(
+  const data = await Tag.update(
     {
       id: req.body.id,
-      product_id: req.body.product_id,
-      tag_id: req.body.tag_id,
+      tag_name: req.body.tag_name,
     },
     {
       where: {
@@ -54,7 +55,7 @@ router.put('/:id',  async(req, res) => {
 
 router.delete('/:id',  async(req, res) => {
   // delete on tag by its `id` value
-  const data = await ProductTag.destroy({
+  const data = await Tag.destroy({
     where: {
       id: req.params.id,
     },
